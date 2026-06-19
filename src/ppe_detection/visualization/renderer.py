@@ -69,7 +69,7 @@ class FrameRenderer:
             if person_comp.alert:
                 self._draw_alert_banner(output, person_comp)
 
-        self._draw_hud(output, fps, compliance)
+        self._draw_hud(output, fps, detections, compliance)
         return output
 
     def _draw_box(
@@ -120,9 +120,19 @@ class FrameRenderer:
             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2,
         )
 
-    def _draw_hud(self, frame: np.ndarray, fps: float, compliance: list[PersonCompliance]) -> None:
+    def _draw_hud(
+        self,
+        frame: np.ndarray,
+        fps: float,
+        detections: FrameDetections,
+        compliance: list[PersonCompliance],
+    ) -> None:
+        # Conta pessoas: via classe Person OU via violações diretas do modelo
+        n_people = len(detections.persons) + len(detections.violations)
+        # Se o rules engine encontrou mais (ex: múltiplas violações agrupadas), usa o maior
+        n_people = max(n_people, len(compliance))
         alerts = sum(1 for c in compliance if c.alert)
-        text = f"FPS: {fps:.1f} | Pessoas: {len(compliance)} | Alertas: {alerts}"
+        text = f"FPS: {fps:.1f} | Pessoas: {n_people} | Alertas: {alerts}"
         cv2.putText(frame, text, (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         cv2.putText(frame, text, (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
 
