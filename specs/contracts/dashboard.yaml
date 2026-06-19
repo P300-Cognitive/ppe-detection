@@ -1,0 +1,35 @@
+# Contrato: Dashboard API
+# Spec: specs/features/epic-07-dashboard.md
+
+service: ppe_detection.dashboard.app
+framework: FastAPI
+
+endpoints:
+  GET /api/cameras:
+    description: Lista câmeras configuradas (US-017)
+    returns: list[{id, name, source, status}]
+
+  GET /api/cameras/{id}/snapshot:
+    description: Último frame anotado da câmera
+    returns: image/jpeg
+
+  GET /api/alerts/recent:
+    description: Alertas recentes em tempo real (US-017)
+    query: limit=20
+    returns: list[OccurrenceRecord]
+
+  GET /api/occurrences:
+    description: Histórico com filtros (US-018)
+    query: [from_date, to_date, camera_id, ppe_type]
+
+  GET /api/reports/summary:
+    description: Indicadores de conformidade (US-019)
+    query: [from_date, to_date, camera_id]
+
+  GET /api/reports/export:
+    description: Exportação PDF ou Excel (US-019)
+    query: [from_date, to_date, format=xlsx|pdf]
+
+static:
+  path: /dashboard
+  file: dashboard/static/index.html

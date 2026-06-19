@@ -1,0 +1,32 @@
+# Contrato: DetectorPort
+# Spec: specs/features/epic-02-people.md, epic-03-ppe.md
+
+port: DetectorPort
+module: ppe_detection.detection.detector.YOLODetector
+
+methods:
+  detect:
+    input: Frame
+    returns: FrameDetections
+    description: Executa inferência YOLO com tracking opcional
+
+output_types:
+  FrameDetections:
+    persons: list[BoundingBox]
+    ppe_items: list[BoundingBox]
+    violations: list[BoundingBox]
+
+  BoundingBox:
+    fields: [x1, y1, x2, y2, label, confidence, track_id?]
+
+configuration:
+  model.path: string
+  model.confidence: float [0, 1]
+  tracking.enabled: boolean
+  classes.*: mapeamento label → tipo de EPI
+
+invariants:
+  - Pessoas são classificadas conforme config.classes.person
+  - EPIs conforme config.classes.{helmet,vest,gloves,goggles,mask,boots}
+  - Violações conforme config.classes.violation
+  - track_id presente quando tracking.enabled=true

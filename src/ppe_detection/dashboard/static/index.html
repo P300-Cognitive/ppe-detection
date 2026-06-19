@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPE Detection — Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
+    header { padding: 1rem 2rem; background: #1e293b; border-bottom: 1px solid #334155; }
+    h1 { font-size: 1.25rem; }
+    main { padding: 1.5rem 2rem; display: grid; gap: 1.5rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+    .card { background: #1e293b; border-radius: 8px; overflow: hidden; border: 1px solid #334155; }
+    .card img { width: 100%; display: block; background: #000; min-height: 180px; object-fit: contain; }
+    .card-body { padding: 0.75rem 1rem; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
+    .badge-ok { background: #166534; }
+    .badge-alert { background: #991b1b; }
+    .badge-run { background: #1d4ed8; }
+    section { background: #1e293b; border-radius: 8px; padding: 1rem; border: 1px solid #334155; }
+    h2 { font-size: 1rem; margin-bottom: 0.75rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #334155; }
+    .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    input, select, button { padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; }
+    button { cursor: pointer; background: #2563eb; border-color: #2563eb; }
+    .stats { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .stat { font-size: 1.5rem; font-weight: 600; }
+    .stat span { display: block; font-size: 0.75rem; color: #94a3b8; font-weight: 400; }
+  </style>
+</head>
+<body>
+  <header><h1>PPE Detection — Monitoramento</h1></header>
+  <main>
+    <section>
+      <h2>Câmeras ao vivo</h2>
+      <div class="grid" id="cameras"></div>
+    </section>
+    <section>
+      <h2>Alertas recentes</h2>
+      <table id="alerts"><thead><tr><th>Data</th><th>Câmera</th><th>Motivo</th><th>EPIs</th></tr></thead><tbody></tbody></table>
+    </section>
+    <section>
+      <h2>Histórico</h2>
+      <div class="filters">
+        <input type="date" id="from-date">
+        <input type="date" id="to-date">
+        <select id="filter-camera"><option value="">Todas câmeras</option></select>
+        <select id="filter-ppe">
+          <option value="">Todos EPIs</option>
+          <option value="helmet">Capacete</option>
+          <option value="vest">Colete</option>
+        </select>
+        <button onclick="loadHistory()">Buscar</button>
+      </div>
+      <table id="history"><thead><tr><th>Data</th><th>Câmera</th><th>Motivo</th><th>EPIs</th></tr></thead><tbody></tbody></table>
+    </section>
+    <section>
+      <h2>Relatório</h2>
+      <div class="stats" id="summary"></div>
+      <div style="margin-top:1rem;display:flex;gap:0.5rem">
+        <button onclick="exportReport('xlsx')">Exportar Excel</button>
+        <button onclick="exportReport('pdf')">Exportar PDF</button>
+      </div>
+    </section>
+  </main>
+  <script>
+    async function loadCameras() {
+      const res = await fetch('/api/cameras');
+      const cameras = await res.json();
+      const el = document.getElementById('cameras');
+      const sel = document.getElementById('filter-camera');
+      el.innerHTML = cameras.map(c => `
+        <div class="card">
+          <img src="/api/cameras/${c.id}/snapshot?t=${Date.now()}" alt="${c.name}">
+          <div class="card-body">
+            <strong>${c.name}</strong>
+            <span class="badge ${c.active_alerts ? 'badge-alert' : 'badge-ok'}">
+              ${c.active_alerts ? c.active_alerts + ' alerta(s)' : 'OK'}
+            </span>
+            <span class="badge badge-run">${c.status} · ${c.fps} FPS</span>
+          </div>
+        </div>`).join('');
+      sel.innerHTML = '<option value="">Todas câmeras</option>' +
+        cameras.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+    async function loadAlerts() {
+      const res = await fetch('/api/alerts/recent?limit=10');
+      const rows = await res.json();
+      document.querySelector('#alerts tbody').innerHTML = rows.map(r => `
+        <tr><td>${new Date(r.created_at).toLocaleString()}</td>
+        <td>${r.camera_id}</td><td>${r.reason}</td>
+        <td>${r.missing_ppe.join(', ')}</td></tr>`).join('');
+    }
+    async function loadHistory() {
+      const params = new URLSearchParams();
+      const from = document.getElementById('from-date').value;
+      const to = document.getElementById('to-date').value;
+      const cam = document.getElementById('filter-camera').value;
+      const ppe = document.getElementById('filter-ppe').value;
+      if (from) params.set('from_date', from + 'T00:00:00');
+      if (to) params.set('to_date', to + 'T23:59:59');
+      if (cam) params.set('camera_id', cam);
+      if (ppe) params.set('ppe_type', ppe);
+      const res = await fetch('/api/occurrences?' + params);
+      const rows = await res.json();
+      document.querySelector('#history tbody').innerHTML = rows.map(r => `
+        <tr><td>${new Date(r.created_at).toLocaleString()}</td>
+        <td>${r.camera_id}</td><td>${r.reason}</td>
+        <td>${r.missing_ppe.join(', ')}</td></tr>`).join('');
+    }
+    async function loadSummary() {
+      const res = await fetch('/api/reports/summary');
+      const s = await res.json();
+      document.getElementById('summary').innerHTML = `
+        <div class="stat">${s.total_infractions}<span>Infrações</span></div>
+        <div class="stat">${(s.compliance_rate * 100).toFixed(1)}%<span>Conformidade</span></div>`;
+    }
+    function exportReport(fmt) {
+      window.open('/api/reports/export?fmt=' + fmt, '_blank');
+    }
+    loadCameras(); loadAlerts(); loadSummary();
+    setInterval(() => { loadCameras(); loadAlerts(); loadSummary(); }, 3000);
+  </script>
+</body>
+</html>

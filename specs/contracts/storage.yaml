@@ -1,0 +1,26 @@
+# Contrato: OccurrenceStorePort
+# Spec: specs/features/epic-07-dashboard.md (US-018)
+
+port: OccurrenceStorePort
+module: ppe_detection.storage.occurrence_store.OccurrenceStore
+
+methods:
+  record:
+    input: OccurrenceRecord
+    returns: int  # id
+
+  search:
+    input:
+      from_date: datetime | null
+      to_date: datetime | null
+      camera_id: string | null
+      ppe_type: string | null
+    returns: list[OccurrenceRecord]
+
+  count_by_period:
+    input: [from_date, to_date]
+    returns: dict  # estatísticas agregadas
+
+types:
+  OccurrenceRecord:
+    fields: [id, camera_id, track_id, reason, missing_ppe, created_at, image_path, video_path]

@@ -1,0 +1,34 @@
+# Contrato: CameraPort
+# Spec: specs/features/epic-01-video.md
+
+port: CameraPort
+module: ppe_detection.camera.capture.CameraCapture
+
+methods:
+  connect:
+    description: Estabelece conexão com a fonte de vídeo
+    raises:
+      - CameraError: quando a fonte está indisponível
+
+  read:
+    description: Lê um frame da câmera
+    returns: Frame | null
+    notes: null indica perda de quadro
+
+  frames:
+    description: Iterator infinito de frames com reconexão automática
+    returns: Iterator<Frame>
+
+  release:
+    description: Libera recursos da câmera
+
+configuration:
+  source:
+    type: string
+    description: Índice USB ("0", "1") ou URL RTSP
+    examples: ["0", "rtsp://user:pass@192.168.1.100/stream"]
+
+invariants:
+  - USB sources são parseados como int quando source.isdigit()
+  - RTSP sources usam cv2.CAP_FFMPEG e buffer size 1
+  - Falha de conexão lança CameraError com mensagem descritiva

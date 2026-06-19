@@ -1,0 +1,34 @@
+# Contrato: PPEAssociatorPort
+# Spec: specs/features/epic-04-association.md
+
+port: PPEAssociatorPort
+module: ppe_detection.association.matcher.PPEAssociator
+
+methods:
+  associate:
+    input:
+      person: BoundingBox
+      ppe_items: list[BoundingBox]
+      ppe_type: enum[helmet, vest, gloves, goggles, mask, boots]
+    returns: list[BoundingBox]
+
+region_rules:
+  helmet:
+    region: head_region  # top 25% da bbox da pessoa
+    match: center_inside OR iou > 0.05
+
+  vest:
+    region: torso_region  # 20%-65% da altura
+    match: center_inside OR iou > 0.05
+
+  gloves:
+    region: full_body
+    match: center_inside OR iou > 0.05
+
+  boots:
+    region: full_body
+    match: center_inside OR iou > 0.05
+
+invariants:
+  - Apenas labels permitidos para o ppe_type são considerados
+  - Capacete de pessoa A não associa a pessoa B se centro está fora da head_region

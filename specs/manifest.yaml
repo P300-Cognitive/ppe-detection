@@ -1,0 +1,265 @@
+version: "1.0"
+project: ppe-detection
+
+epics:
+  - id: EPIC-01
+    title: Captura e Processamento de Vídeo
+    spec: specs/features/epic-01-video.md
+
+  - id: EPIC-02
+    title: Detecção de Pessoas
+    spec: specs/features/epic-02-people.md
+
+  - id: EPIC-03
+    title: Detecção de EPI
+    spec: specs/features/epic-03-ppe.md
+
+  - id: EPIC-04
+    title: Associação Pessoa x EPI
+    spec: specs/features/epic-04-association.md
+
+  - id: EPIC-05
+    title: Regras de Segurança
+    spec: specs/features/epic-05-rules.md
+
+  - id: EPIC-06
+    title: Alertas e Evidências
+    spec: specs/features/epic-06-alerts.md
+
+  - id: EPIC-07
+    title: Dashboard e Monitoramento
+    spec: specs/features/epic-07-dashboard.md
+
+user_stories:
+  - id: US-001
+    epic: EPIC-01
+    title: Capturar vídeo de uma câmera
+    status: verified
+    spec: specs/features/epic-01-video.md#us-001
+    contract: specs/contracts/camera.yaml
+    implementation:
+      - src/ppe_detection/camera/capture.py
+    tests:
+      - tests/spec/test_us001_camera.py
+
+  - id: US-002
+    epic: EPIC-01
+    title: Processar vídeo em tempo real
+    status: verified
+    spec: specs/features/epic-01-video.md#us-002
+    contract: specs/contracts/camera.yaml
+    implementation:
+      - src/ppe_detection/pipeline.py
+      - src/ppe_detection/camera/capture.py
+    tests:
+      - tests/spec/test_us002_processing.py
+
+  - id: US-003
+    epic: EPIC-02
+    title: Detectar pessoas na imagem
+    status: implemented
+    spec: specs/features/epic-02-people.md#us-003
+    contract: specs/contracts/detector.yaml
+    implementation:
+      - src/ppe_detection/detection/detector.py
+    tests:
+      - tests/spec/test_us003_person_detection.py
+
+  - id: US-004
+    epic: EPIC-02
+    title: Rastrear pessoas entre quadros
+    status: implemented
+    spec: specs/features/epic-02-people.md#us-004
+    contract: specs/contracts/detector.yaml
+    implementation:
+      - src/ppe_detection/detection/detector.py
+    tests: []
+
+  - id: US-005
+    epic: EPIC-03
+    title: Detectar capacetes
+    status: implemented
+    spec: specs/features/epic-03-ppe.md#us-005
+    contract: specs/contracts/detector.yaml
+    implementation:
+      - src/ppe_detection/detection/detector.py
+    tests: []
+
+  - id: US-006
+    epic: EPIC-03
+    title: Detectar coletes refletivos
+    status: implemented
+    spec: specs/features/epic-03-ppe.md#us-006
+    contract: specs/contracts/detector.yaml
+    implementation:
+      - src/ppe_detection/detection/detector.py
+    tests: []
+
+  - id: US-007
+    epic: EPIC-03
+    title: Detectar outros EPIs
+    status: implemented
+    spec: specs/features/epic-03-ppe.md#us-007
+    contract: specs/contracts/detector.yaml
+    implementation:
+      - src/ppe_detection/detection/detector.py
+    tests: []
+
+  - id: US-008
+    epic: EPIC-04
+    title: Associar capacete a uma pessoa
+    status: verified
+    spec: specs/features/epic-04-association.md#us-008
+    contract: specs/contracts/association.yaml
+    implementation:
+      - src/ppe_detection/association/matcher.py
+    tests:
+      - tests/spec/test_us008_helmet_association.py
+
+  - id: US-009
+    epic: EPIC-04
+    title: Associar colete a uma pessoa
+    status: verified
+    spec: specs/features/epic-04-association.md#us-009
+    contract: specs/contracts/association.yaml
+    implementation:
+      - src/ppe_detection/association/matcher.py
+    tests:
+      - tests/spec/test_us009_vest_association.py
+
+  - id: US-010
+    epic: EPIC-05
+    title: Identificar ausência de capacete
+    status: verified
+    spec: specs/features/epic-05-rules.md#us-010
+    contract: specs/contracts/rules.yaml
+    implementation:
+      - src/ppe_detection/rules/safety.py
+    tests:
+      - tests/spec/test_us010_helmet_rules.py
+
+  - id: US-011
+    epic: EPIC-05
+    title: Identificar ausência de colete
+    status: verified
+    spec: specs/features/epic-05-rules.md#us-011
+    contract: specs/contracts/rules.yaml
+    implementation:
+      - src/ppe_detection/rules/safety.py
+    tests:
+      - tests/spec/test_us011_vest_rules.py
+
+  - id: US-012
+    epic: EPIC-05
+    title: Configurar regras por ambiente
+    status: implemented
+    spec: specs/features/epic-05-rules.md#us-012
+    contract: specs/contracts/rules.yaml
+    implementation:
+      - src/ppe_detection/config.py
+      - config/default.yaml
+    tests:
+      - tests/spec/test_us012_configurable_rules.py
+
+  - id: US-013
+    epic: EPIC-06
+    title: Exibir alerta visual
+    status: implemented
+    spec: specs/features/epic-06-alerts.md#us-013
+    contract: specs/contracts/renderer.yaml
+    implementation:
+      - src/ppe_detection/visualization/renderer.py
+    tests:
+      - tests/spec/test_us013_visual_alert.py
+
+  - id: US-014
+    epic: EPIC-06
+    title: Registrar imagem da ocorrência
+    status: verified
+    spec: specs/features/epic-06-alerts.md#us-014
+    contract: specs/contracts/evidence.yaml
+    implementation:
+      - src/ppe_detection/visualization/renderer.py
+      - src/ppe_detection/pipeline.py
+    tests:
+      - tests/spec/test_us014_evidence.py
+
+  - id: US-015
+    epic: EPIC-06
+    title: Registrar vídeo da ocorrência
+    status: verified
+    spec: specs/features/epic-06-alerts.md#us-015
+    contract: specs/contracts/evidence.yaml
+    implementation:
+      - src/ppe_detection/evidence/video_buffer.py
+      - src/ppe_detection/evidence/video_store.py
+      - src/ppe_detection/pipeline.py
+    tests:
+      - tests/spec/test_us015_video_evidence.py
+
+  - id: US-016
+    epic: EPIC-06
+    title: Enviar notificação automática
+    status: specified
+
+  - id: US-017
+    epic: EPIC-07
+    title: Visualizar câmeras em tempo real
+    status: verified
+    spec: specs/features/epic-07-dashboard.md#us-017
+    contract: specs/contracts/dashboard.yaml
+    implementation:
+      - src/ppe_detection/dashboard/app.py
+      - src/ppe_detection/dashboard/service.py
+      - src/ppe_detection/dashboard/static/index.html
+    tests:
+      - tests/spec/test_us017_dashboard_live.py
+
+  - id: US-018
+    epic: EPIC-07
+    title: Consultar histórico de ocorrências
+    status: verified
+    spec: specs/features/epic-07-dashboard.md#us-018
+    contract: specs/contracts/storage.yaml
+    implementation:
+      - src/ppe_detection/storage/occurrence_store.py
+      - src/ppe_detection/dashboard/app.py
+    tests:
+      - tests/spec/test_us018_occurrence_history.py
+
+  - id: US-019
+    epic: EPIC-07
+    title: Gerar relatórios
+    status: verified
+    spec: specs/features/epic-07-dashboard.md#us-019
+    contract: specs/contracts/dashboard.yaml
+    implementation:
+      - src/ppe_detection/dashboard/reports.py
+      - src/ppe_detection/dashboard/app.py
+    tests:
+      - tests/spec/test_us019_reports.py
+
+  - id: US-020
+    epic: EPIC-08
+    title: Gerenciar câmeras
+    status: specified
+
+  - id: US-021
+    epic: EPIC-08
+    title: Gerenciar modelos de IA
+    status: implemented
+    spec: specs/features/epic-03-ppe.md#modelo
+    implementation:
+      - scripts/download_model.py
+      - config/default.yaml
+    tests: []
+
+  - id: US-022
+    epic: EPIC-08
+    title: Configurar limiares de confiança
+    status: implemented
+    implementation:
+      - config/default.yaml
+      - src/ppe_detection/main.py
+    tests:
+      - tests/spec/test_us022_confidence.py

@@ -1,0 +1,60 @@
+camera:
+  source: "0"           # índice USB (0, 1...) ou URL RTSP
+  width: 1280
+  height: 720
+  min_fps: 10
+  reconnect_delay_sec: 3
+
+model:
+  # Modelo PPE com Person + EPIs (HuggingFace)
+  path: "hf://Hexmon/vyra-yolo-ppe-detection/best.pt"
+  confidence: 0.45
+  device: ""            # vazio = auto (cuda se disponível)
+
+classes:
+  person: ["Person"]
+  helmet: ["Hardhat"]
+  vest: ["Safety Vest"]
+  gloves: ["Gloves"]
+  goggles: ["Goggles"]
+  mask: ["Mask"]
+  boots: []             # adicionar quando o modelo suportar
+  violation:
+    no_helmet: ["NO-Hardhat"]
+    no_vest: ["NO-Safety Vest"]
+    no_gloves: ["NO-Gloves"]
+    no_goggles: ["NO-Goggles"]
+    no_mask: ["NO-Mask"]
+
+tracking:
+  enabled: true
+  tracker: "bytetrack.yaml"
+
+rules:
+  required_ppe: ["helmet", "vest"]
+  confirmation_frames: 15   # frames consecutivos antes de alertar
+
+display:
+  show_confidence: true
+  alert_color: [0, 0, 255]      # BGR vermelho
+  person_color: [0, 255, 0]   # BGR verde
+  ppe_color: [255, 200, 0]    # BGR ciano-amarelado
+  window_name: "PPE Detection"
+
+evidence:
+  enabled: false
+  output_dir: "evidence"
+  save_on_alert: true
+  save_video: true
+  video_pre_seconds: 3
+  video_post_seconds: 3
+  video_fps: 10
+
+storage:
+  db_path: "data/occurrences.db"
+  reports_dir: "data/reports"
+
+dashboard:
+  host: "0.0.0.0"
+  port: 8080
+  cameras_file: "config/cameras.yaml"

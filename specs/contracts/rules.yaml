@@ -1,0 +1,30 @@
+# Contrato: RulesEnginePort
+# Spec: specs/features/epic-05-rules.md
+
+port: RulesEnginePort
+module: ppe_detection.rules.safety.SafetyRulesEngine
+
+methods:
+  evaluate:
+    input: FrameDetections
+    returns: list[PersonCompliance]
+
+output_types:
+  PersonCompliance:
+    fields: [track_id, bbox, ppe_present, missing_ppe, violations, alert, alert_reason]
+
+configuration:
+  rules.required_ppe: list[string]
+  rules.confirmation_frames: int >= 1
+
+behavior:
+  confirmation:
+    description: Alerta só dispara após N frames consecutivos com EPI ausente
+    reset: contador zera quando pessoa fica conforme
+
+  per_camera_rules:
+    description: required_ppe configurável via YAML (US-012)
+
+invariants:
+  - alert=true implica alert_reason não vazio
+  - missing_ppe vazio implica alert=false

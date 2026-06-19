@@ -1,0 +1,24 @@
+# Contrato: RendererPort + EvidencePort
+# Spec: specs/features/epic-06-alerts.md
+
+ports:
+  RendererPort:
+    module: ppe_detection.visualization.renderer.FrameRenderer
+    methods:
+      render:
+        input: [Frame, FrameDetections, list[PersonCompliance], fps?]
+        returns: Frame
+        behavior:
+          - Pessoa conforme → bbox verde (person_color)
+          - Pessoa em alerta → bbox vermelho (alert_color) + banner
+          - EPI detectado → bbox ppe_color com label e confiança
+
+  EvidencePort:
+    module: ppe_detection.visualization.renderer.save_evidence
+    methods:
+      save:
+        input: [Frame, output_dir, track_id, reason]
+        returns: Path
+        behavior:
+          - Arquivo JPEG com timestamp no nome
+          - Overlay com data/hora e motivo

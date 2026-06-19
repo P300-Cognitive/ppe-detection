@@ -1,0 +1,37 @@
+# Contrato: EvidencePort (imagem + vídeo)
+# Spec: specs/features/epic-06-alerts.md
+
+ports:
+  EvidencePort:
+    module: ppe_detection.visualization.renderer.EvidenceStore
+    methods:
+      save:
+        input: [Frame, output_dir, track_id, reason]
+        returns: Path
+
+  VideoEvidencePort:
+    module: ppe_detection.evidence.video_store.VideoEvidenceStore
+    methods:
+      push_frame:
+        description: Adiciona frame ao buffer circular
+        input: Frame
+
+      on_alert:
+        description: Inicia gravação pré/pós alerta
+        input: [track_id, reason, current_frame]
+        returns: Path | null  # null se gravação ainda em andamento
+
+      tick:
+        description: Processa frame pós-alerta pendente
+        input: Frame
+        returns: list[Path]  # vídeos finalizados neste tick
+
+configuration:
+  evidence.video_pre_seconds: float
+  evidence.video_post_seconds: float
+  evidence.save_video: boolean
+  evidence.video_fps: int
+
+invariants:
+  - Vídeo contém frames do buffer pré-alerta + frames pós-alerta
+  - Um vídeo por track_id por evento de alerta
