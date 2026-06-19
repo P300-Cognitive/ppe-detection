@@ -39,7 +39,7 @@ display:
   alert_color: [0, 0, 255]      # BGR vermelho
   person_color: [0, 255, 0]   # BGR verde
   ppe_color: [255, 200, 0]    # BGR ciano-amarelado
-  window_name: "PPE Detection"
+  window_name: "PPE Detection"  # sem acentos — evita bug do OpenCV/Qt no Linux
 
 evidence:
   enabled: false

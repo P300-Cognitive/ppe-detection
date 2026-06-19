@@ -62,6 +62,11 @@ class PPEPipeline:
         logger.info("Iniciando pipeline de detecção de EPI...")
         logger.info("Pressione 'q' para sair.")
 
+        win = self._config.display.window_name
+        if show:
+            # Cria a janela uma única vez antes do loop para evitar duplicatas no Linux/Qt
+            cv2.namedWindow(win, cv2.WINDOW_NORMAL)
+
         try:
             for frame in self._camera.frames():
                 start = time.perf_counter()
@@ -84,7 +89,7 @@ class PPEPipeline:
                 self._handle_evidence(rendered, compliance)
 
                 if show:
-                    cv2.imshow(self._config.display.window_name, rendered)
+                    cv2.imshow(win, rendered)
                     if (cv2.waitKey(1) & 0xFF) == ord("q"):
                         break
         finally:
