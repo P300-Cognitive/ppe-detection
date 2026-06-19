@@ -50,7 +50,12 @@ class SafetyRulesEngine:
 
             for violation in detections.violations:
                 ppe_key = self._violation_ppe_key(violation.label)
-                if ppe_key and self._violation_near_person(violation, person):
+                if not ppe_key:
+                    continue
+                # Só considera violações de EPIs que o operador marcou como obrigatórios
+                if ppe_key not in self._config.rules.required_ppe:
+                    continue
+                if self._violation_near_person(violation, person):
                     compliance.violations.append(violation.label)
                     if ppe_key not in compliance.missing_ppe:
                         compliance.missing_ppe.append(ppe_key)

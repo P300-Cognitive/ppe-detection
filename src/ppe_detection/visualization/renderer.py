@@ -9,6 +9,23 @@ import numpy as np
 from ppe_detection.config import AppConfig
 from ppe_detection.domain.models import BoundingBox, FrameDetections, PersonCompliance
 
+# Mesmo mapa usado no rules engine — mantido aqui para evitar import circular
+_VIOLATION_PPE_MAP: dict[str, str] = {
+    "NO-Hardhat": "helmet",
+    "NO-Safety Vest": "vest",
+    "NO-Gloves": "gloves",
+    "NO-Goggles": "goggles",
+    "NO-Mask": "mask",
+}
+
+
+def _violation_to_ppe_key(label: str) -> str:
+    if label in _VIOLATION_PPE_MAP:
+        return _VIOLATION_PPE_MAP[label]
+    if label.startswith("NO-"):
+        return label.removeprefix("NO-").lower().replace(" ", "_").replace("-", "_")
+    return ""
+
 
 class FrameRenderer:
     """Implementa RendererPort — specs/contracts/renderer.yaml."""
@@ -38,9 +55,13 @@ class FrameRenderer:
             self._draw_box(output, item, self._config.display.ppe_color)
 
         # Violações diretas do modelo (NO-Hardhat, NO-Safety Vest, etc.)
-        # Só desenha as que não foram cobertas por uma pessoa já desenhada
+        # Só desenha as relacionadas a EPIs que o operador selecionou como obrigatórios
         drawn_track_ids = {p.track_id for p in detections.persons if p.track_id is not None}
+        required = set(self._config.rules.required_ppe)
         for violation in detections.violations:
+            ppe_key = _violation_to_ppe_key(violation.label)
+            if ppe_key not in required:
+                continue
             if violation.track_id not in drawn_track_ids:
                 self._draw_box(output, violation, self._config.display.alert_color)
 
