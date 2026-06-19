@@ -45,3 +45,10 @@ class TestUS017Dashboard:
         res = client.get("/api/cameras/cam1/snapshot")
         assert res.status_code == 200
         assert res.headers["content-type"] == "image/jpeg"
+
+    def test_ac_017_3_status_shows_required_ppe(self, client):
+        res = client.get("/api/status")
+        assert res.status_code == 200
+        data = res.json()
+        assert "required_ppe" in data
+        assert "required_ppe_labels" in data

@@ -7,21 +7,25 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
-    header { padding: 1rem 2rem; background: #1e293b; border-bottom: 1px solid #334155; }
+    header { padding: 1rem 2rem; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
     h1 { font-size: 1.25rem; }
+    .epi-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .epi-tag { background: #334155; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; }
     main { padding: 1.5rem 2rem; display: grid; gap: 1.5rem; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
     .card { background: #1e293b; border-radius: 8px; overflow: hidden; border: 1px solid #334155; }
     .card img { width: 100%; display: block; background: #000; min-height: 180px; object-fit: contain; }
-    .card-body { padding: 0.75rem 1rem; }
+    .card-body { padding: 0.75rem 1rem; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
     .badge-ok { background: #166534; }
     .badge-alert { background: #991b1b; }
     .badge-run { background: #1d4ed8; }
+    .badge-wait { background: #475569; }
     section { background: #1e293b; border-radius: 8px; padding: 1rem; border: 1px solid #334155; }
     h2 { font-size: 1rem; margin-bottom: 0.75rem; }
     table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
     th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #334155; }
+    .empty { color: #94a3b8; font-size: 0.875rem; padding: 0.5rem 0; }
     .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
     input, select, button { padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; }
     button { cursor: pointer; background: #2563eb; border-color: #2563eb; }
@@ -31,7 +35,10 @@
   </style>
 </head>
 <body>
-  <header><h1>PPE Detection — Monitoramento</h1></header>
+  <header>
+    <h1>PPE Detection — Monitoramento</h1>
+    <div class="epi-tags" id="epi-tags"></div>
+  </header>
   <main>
     <section>
       <h2>Câmeras ao vivo</h2>
@@ -39,7 +46,10 @@
     </section>
     <section>
       <h2>Alertas recentes</h2>
-      <table id="alerts"><thead><tr><th>Data</th><th>Câmera</th><th>Motivo</th><th>EPIs</th></tr></thead><tbody></tbody></table>
+      <table id="alerts">
+        <thead><tr><th>Data</th><th>Câmera</th><th>Motivo</th><th>EPIs</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </section>
     <section>
       <h2>Histórico</h2>
@@ -51,10 +61,17 @@
           <option value="">Todos EPIs</option>
           <option value="helmet">Capacete</option>
           <option value="vest">Colete</option>
+          <option value="gloves">Luvas</option>
+          <option value="goggles">Oculos</option>
+          <option value="mask">Mascara</option>
+          <option value="boots">Botas</option>
         </select>
         <button onclick="loadHistory()">Buscar</button>
       </div>
-      <table id="history"><thead><tr><th>Data</th><th>Câmera</th><th>Motivo</th><th>EPIs</th></tr></thead><tbody></tbody></table>
+      <table id="history">
+        <thead><tr><th>Data</th><th>Câmera</th><th>Motivo</th><th>EPIs</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </section>
     <section>
       <h2>Relatório</h2>
@@ -66,33 +83,57 @@
     </section>
   </main>
   <script>
+    async function loadStatus() {
+      const res = await fetch('/api/status');
+      const s = await res.json();
+      document.getElementById('epi-tags').innerHTML = s.required_ppe_labels.length
+        ? s.required_ppe_labels.map(l => `<span class="epi-tag">${l}</span>`).join('')
+        : '<span class="epi-tag">Sem EPIs obrigatórios</span>';
+    }
+
     async function loadCameras() {
       const res = await fetch('/api/cameras');
       const cameras = await res.json();
       const el = document.getElementById('cameras');
       const sel = document.getElementById('filter-camera');
-      el.innerHTML = cameras.map(c => `
+
+      if (!cameras.length) {
+        el.innerHTML = '<p class="empty">Nenhuma câmera em config/cameras.yaml</p>';
+        return;
+      }
+
+      el.innerHTML = cameras.map(c => {
+        const badge = c.active_alerts ? 'badge-alert' : (c.status === 'running' ? 'badge-ok' : 'badge-wait');
+        const statusText = c.active_alerts
+          ? `${c.active_alerts} alerta(s)`
+          : (c.status === 'running' ? 'OK' : c.status);
+        return `
         <div class="card">
-          <img src="/api/cameras/${c.id}/snapshot?t=${Date.now()}" alt="${c.name}">
+          <img src="/api/cameras/${c.id}/snapshot?t=${Date.now()}" alt="${c.name}"
+               onerror="this.alt='Aguardando frame...'">
           <div class="card-body">
             <strong>${c.name}</strong>
-            <span class="badge ${c.active_alerts ? 'badge-alert' : 'badge-ok'}">
-              ${c.active_alerts ? c.active_alerts + ' alerta(s)' : 'OK'}
-            </span>
-            <span class="badge badge-run">${c.status} · ${c.fps} FPS</span>
+            <span class="badge ${badge}">${statusText}</span>
+            <span class="badge badge-run">${c.fps} FPS</span>
           </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
+
       sel.innerHTML = '<option value="">Todas câmeras</option>' +
         cameras.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     }
+
     async function loadAlerts() {
       const res = await fetch('/api/alerts/recent?limit=10');
       const rows = await res.json();
-      document.querySelector('#alerts tbody').innerHTML = rows.map(r => `
+      const tbody = document.querySelector('#alerts tbody');
+      tbody.innerHTML = rows.length ? rows.map(r => `
         <tr><td>${new Date(r.created_at).toLocaleString()}</td>
         <td>${r.camera_id}</td><td>${r.reason}</td>
-        <td>${r.missing_ppe.join(', ')}</td></tr>`).join('');
+        <td>${r.missing_ppe.join(', ')}</td></tr>`).join('')
+        : '<tr><td colspan="4" class="empty">Nenhum alerta registrado</td></tr>';
     }
+
     async function loadHistory() {
       const params = new URLSearchParams();
       const from = document.getElementById('from-date').value;
@@ -105,11 +146,14 @@
       if (ppe) params.set('ppe_type', ppe);
       const res = await fetch('/api/occurrences?' + params);
       const rows = await res.json();
-      document.querySelector('#history tbody').innerHTML = rows.map(r => `
+      const tbody = document.querySelector('#history tbody');
+      tbody.innerHTML = rows.length ? rows.map(r => `
         <tr><td>${new Date(r.created_at).toLocaleString()}</td>
         <td>${r.camera_id}</td><td>${r.reason}</td>
-        <td>${r.missing_ppe.join(', ')}</td></tr>`).join('');
+        <td>${r.missing_ppe.join(', ')}</td></tr>`).join('')
+        : '<tr><td colspan="4" class="empty">Nenhuma ocorrência encontrada</td></tr>';
     }
+
     async function loadSummary() {
       const res = await fetch('/api/reports/summary');
       const s = await res.json();
@@ -117,9 +161,12 @@
         <div class="stat">${s.total_infractions}<span>Infrações</span></div>
         <div class="stat">${(s.compliance_rate * 100).toFixed(1)}%<span>Conformidade</span></div>`;
     }
+
     function exportReport(fmt) {
       window.open('/api/reports/export?fmt=' + fmt, '_blank');
     }
+
+    loadStatus();
     loadCameras(); loadAlerts(); loadSummary();
     setInterval(() => { loadCameras(); loadAlerts(); loadSummary(); }, 3000);
   </script>

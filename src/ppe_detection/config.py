@@ -19,7 +19,7 @@ class CameraConfig:
 @dataclass
 class ModelConfig:
     path: str = "hf://Hexmon/vyra-yolo-ppe-detection/best.pt"
-    confidence: float = 0.45
+    confidence: float = 0.25
     device: str = ""
 
 

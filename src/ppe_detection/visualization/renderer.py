@@ -8,23 +8,11 @@ import numpy as np
 
 from ppe_detection.config import AppConfig
 from ppe_detection.domain.models import BoundingBox, FrameDetections, PersonCompliance
-
-# Mesmo mapa usado no rules engine — mantido aqui para evitar import circular
-_VIOLATION_PPE_MAP: dict[str, str] = {
-    "NO-Hardhat": "helmet",
-    "NO-Safety Vest": "vest",
-    "NO-Gloves": "gloves",
-    "NO-Goggles": "goggles",
-    "NO-Mask": "mask",
-}
-
-
-def _violation_to_ppe_key(label: str) -> str:
-    if label in _VIOLATION_PPE_MAP:
-        return _VIOLATION_PPE_MAP[label]
-    if label.startswith("NO-"):
-        return label.removeprefix("NO-").lower().replace(" ", "_").replace("-", "_")
-    return ""
+from ppe_detection.domain.ppe import (
+    count_people,
+    relevant_ppe_items,
+    relevant_violations,
+)
 
 
 class FrameRenderer:
@@ -42,6 +30,8 @@ class FrameRenderer:
     ) -> np.ndarray:
         output = frame.copy()
         alert_ids = {c.track_id for c in compliance if c.alert}
+        required = self._config.rules.required_ppe
+        classes = self._config.classes
 
         for person in detections.persons:
             is_alert = person.track_id in alert_ids
@@ -51,18 +41,12 @@ class FrameRenderer:
             )
             self._draw_box(output, person, color, person.track_id)
 
-        for item in detections.ppe_items:
+        for item in relevant_ppe_items(detections, required, classes):
             self._draw_box(output, item, self._config.display.ppe_color)
 
-        # Violações diretas do modelo (NO-Hardhat, NO-Safety Vest, etc.)
-        # Só desenha as relacionadas a EPIs que o operador selecionou como obrigatórios
-        drawn_track_ids = {p.track_id for p in detections.persons if p.track_id is not None}
-        required = set(self._config.rules.required_ppe)
-        for violation in detections.violations:
-            ppe_key = _violation_to_ppe_key(violation.label)
-            if ppe_key not in required:
-                continue
-            if violation.track_id not in drawn_track_ids:
+        drawn_tracks = {p.track_id for p in detections.persons if p.track_id is not None}
+        for violation in relevant_violations(detections, required, classes):
+            if violation.track_id not in drawn_tracks:
                 self._draw_box(output, violation, self._config.display.alert_color)
 
         for person_comp in compliance:
@@ -99,8 +83,7 @@ class FrameRenderer:
         color: tuple[int, int, int],
     ) -> None:
         font = cv2.FONT_HERSHEY_SIMPLEX
-        scale = 0.5
-        thickness = 1
+        scale, thickness = 0.5, 1
         (tw, th), _ = cv2.getTextSize(text, font, scale, thickness)
         cv2.rectangle(frame, (x, y - th - 8), (x + tw + 4, y), color, -1)
         cv2.putText(frame, text, (x + 2, y - 4), font, scale, (255, 255, 255), thickness)
@@ -127,10 +110,9 @@ class FrameRenderer:
         detections: FrameDetections,
         compliance: list[PersonCompliance],
     ) -> None:
-        # Conta pessoas: via classe Person OU via violações diretas do modelo
-        n_people = len(detections.persons) + len(detections.violations)
-        # Se o rules engine encontrou mais (ex: múltiplas violações agrupadas), usa o maior
-        n_people = max(n_people, len(compliance))
+        n_people = count_people(
+            detections, self._config.rules.required_ppe, self._config.classes,
+        )
         alerts = sum(1 for c in compliance if c.alert)
         text = f"FPS: {fps:.1f} | Pessoas: {n_people} | Alertas: {alerts}"
         cv2.putText(frame, text, (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
@@ -158,18 +140,12 @@ def save_evidence(
 ) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"alert_{track_id}_{timestamp}.jpg"
-    path = output_dir / filename
+    path = output_dir / f"alert_{track_id}_{timestamp}.jpg"
 
     annotated = frame.copy()
     cv2.putText(
-        annotated,
-        f"{timestamp} - {reason}",
-        (10, 30),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.7,
-        (0, 0, 255),
-        2,
+        annotated, f"{timestamp} - {reason}",
+        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2,
     )
     cv2.imwrite(str(path), annotated)
     return path

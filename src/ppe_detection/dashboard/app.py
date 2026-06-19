@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 
 import cv2
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from ppe_detection.config import AppConfig, load_cameras_config, load_config
 from ppe_detection.dashboard.reports import export_report, generate_summary
 from ppe_detection.dashboard.service import DashboardService
+from ppe_detection.domain.ppe import ppe_label
 from ppe_detection.storage.occurrence_store import OccurrenceStore
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -38,20 +40,39 @@ def create_app(
 ) -> FastAPI:
     config = config or load_config()
     store = store or OccurrenceStore(config.storage.db_path)
+    owns_service = service is None
 
     if service is None:
         cameras = load_cameras_config(config.dashboard.cameras_file)
         service = DashboardService(config, cameras, store)
-        service.start()
 
-    app = FastAPI(title="PPE Detection Dashboard", version="0.1.0")
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        if owns_service:
+            service.start()
+        yield
+        if owns_service:
+            service.stop()
+
+    app = FastAPI(title="PPE Detection Dashboard", version="0.1.0", lifespan=lifespan)
     app.state.service = service
     app.state.store = store
     app.state.config = config
 
-    @app.on_event("shutdown")
-    def shutdown() -> None:
-        service.stop()
+    @app.get("/")
+    def root() -> RedirectResponse:
+        return RedirectResponse(url="/dashboard/")
+
+    @app.get("/api/status")
+    def status() -> dict:
+        return {
+            "required_ppe": config.rules.required_ppe,
+            "required_ppe_labels": [ppe_label(k) for k in config.rules.required_ppe],
+            "model": config.model.path,
+            "confidence": config.model.confidence,
+            "cameras_count": len(load_cameras_config(config.dashboard.cameras_file)),
+            "evidence_enabled": config.evidence.enabled,
+        }
 
     @app.get("/api/cameras")
     def list_cameras() -> list[dict]:
