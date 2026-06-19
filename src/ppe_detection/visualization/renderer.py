@@ -37,6 +37,13 @@ class FrameRenderer:
         for item in detections.ppe_items:
             self._draw_box(output, item, self._config.display.ppe_color)
 
+        # Violações diretas do modelo (NO-Hardhat, NO-Safety Vest, etc.)
+        # Só desenha as que não foram cobertas por uma pessoa já desenhada
+        drawn_track_ids = {p.track_id for p in detections.persons if p.track_id is not None}
+        for violation in detections.violations:
+            if violation.track_id not in drawn_track_ids:
+                self._draw_box(output, violation, self._config.display.alert_color)
+
         for person_comp in compliance:
             if person_comp.alert:
                 self._draw_alert_banner(output, person_comp)

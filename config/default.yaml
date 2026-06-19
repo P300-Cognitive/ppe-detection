@@ -8,7 +8,7 @@ camera:
 model:
   # Modelo PPE com Person + EPIs (HuggingFace)
   path: "hf://Hexmon/vyra-yolo-ppe-detection/best.pt"
-  confidence: 0.45
+  confidence: 0.25
   device: ""            # vazio = auto (cuda se disponível)
 
 classes:

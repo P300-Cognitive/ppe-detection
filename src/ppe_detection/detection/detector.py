@@ -4,12 +4,16 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+import logging
+
 from ppe_detection.config import AppConfig
 from ppe_detection.detection.model_loader import resolve_model_path
 from ppe_detection.domain.models import BoundingBox, FrameDetections
 
 if TYPE_CHECKING:
     from ultralytics.engine.results import Results
+
+logger = logging.getLogger(__name__)
 
 
 class YOLODetector:
@@ -22,10 +26,13 @@ class YOLODetector:
         model_path = resolve_model_path(config.model.path)
         self._model = YOLO(model_path)
         self._class_groups = self._build_class_groups()
+        self._frame_count = 0
 
     def _build_class_groups(self) -> dict[str, set[int]]:
         names = self._model.names
         label_to_id = {v: k for k, v in names.items()}
+
+        logger.info("Classes do modelo: %s", list(names.values()))
 
         groups: dict[str, set[int]] = {
             "person": set(),
@@ -36,6 +43,8 @@ class YOLODetector:
         for label in self._config.classes.person:
             if label in label_to_id:
                 groups["person"].add(label_to_id[label])
+            else:
+                logger.warning("Classe pessoa '%s' não encontrada no modelo.", label)
 
         ppe_labels = (
             self._config.classes.helmet
@@ -48,12 +57,20 @@ class YOLODetector:
         for label in ppe_labels:
             if label in label_to_id:
                 groups["ppe"].add(label_to_id[label])
+            else:
+                logger.warning("Classe EPI '%s' não encontrada no modelo.", label)
 
         for labels in self._config.classes.violation.values():
             for label in labels:
                 if label in label_to_id:
                     groups["violation"].add(label_to_id[label])
+                else:
+                    logger.warning("Classe violação '%s' não encontrada no modelo.", label)
 
+        logger.info(
+            "Grupos mapeados — pessoa: %s, EPI: %s, violação: %s",
+            groups["person"], groups["ppe"], groups["violation"],
+        )
         return groups
 
     def detect(self, frame: np.ndarray) -> FrameDetections:
@@ -74,7 +91,18 @@ class YOLODetector:
         else:
             results = self._model.predict(frame, **kwargs)
 
-        return self._parse_results(results[0])
+        detections = self._parse_results(results[0])
+        self._frame_count += 1
+        if self._frame_count % 30 == 0:
+            logger.debug(
+                "Frame %d — pessoas: %d, EPIs: %d, violações: %d (conf=%.2f)",
+                self._frame_count,
+                len(detections.persons),
+                len(detections.ppe_items),
+                len(detections.violations),
+                self._config.model.confidence,
+            )
+        return detections
 
     def _parse_results(self, result: Results) -> FrameDetections:
         detections = FrameDetections()
