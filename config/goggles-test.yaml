@@ -1,0 +1,55 @@
+camera:
+  source: "0"
+  width: 1280
+  height: 720
+  min_fps: 10
+  reconnect_delay_sec: 3
+
+model:
+  path: "hf://Hexmon/vyra-yolo-ppe-detection/best.pt"
+  confidence: 0.20   # óculos são menores — limiar mais baixo
+  device: ""
+
+classes:
+  person: ["Person"]
+  helmet: []
+  vest: []
+  gloves: []
+  goggles: ["Goggles"]
+  mask: []
+  boots: []
+  violation:
+    no_goggles: ["NO-Goggles"]
+
+tracking:
+  enabled: true
+  tracker: "bytetrack.yaml"
+
+rules:
+  required_ppe: ["goggles"]
+  confirmation_frames: 5
+
+display:
+  show_confidence: true
+  alert_color: [0, 0, 255]
+  person_color: [0, 255, 0]
+  ppe_color: [0, 200, 255]
+  window_name: "Goggles Detection"
+
+evidence:
+  enabled: false
+  output_dir: "evidence"
+  save_on_alert: false
+  save_video: false
+  video_pre_seconds: 3
+  video_post_seconds: 3
+  video_fps: 10
+
+storage:
+  db_path: "data/occurrences.db"
+  reports_dir: "data/reports"
+
+dashboard:
+  host: "0.0.0.0"
+  port: 8080
+  cameras_file: "config/cameras.yaml"
