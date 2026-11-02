@@ -1,0 +1,10 @@
+[project]
+name = "ppe-detection"
+version = "0.1.0"
+description = "Sistema de detecção de EPIs com visão computacional"
+requires-python = ">=3.10"
+
+[tool.behave]
+paths = ["features"]
+stdout_capture = false
+stderr_capture = false
