@@ -5,11 +5,13 @@ behave>=1.2.6
 opencv-python>=4.8.0
 numpy>=1.24.0
 
-# PPE Detection (YOLOv8)
+# PPE Detection (YOLOv8 + YOLO-World para óculos)
 ultralytics>=8.0.0
+clip @ git+https://github.com/ultralytics/CLIP.git
 
 # Person Tracking
 supervision>=0.18.0
+trackers>=2.0.0
 
 # Image Processing
 Pillow>=10.0.0

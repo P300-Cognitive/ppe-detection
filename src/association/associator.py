@@ -20,10 +20,10 @@ def _iou(a: BBox, b: BBox) -> float:
     return inter / union if union > 0 else 0.0
 
 
-def _head_region(bbox: BBox) -> BBox:
-    """Terço superior da bounding box — região da cabeça."""
+def _face_region(bbox: BBox) -> BBox:
+    """Faixa superior da pessoa. Num close da webcam o rosto fica abaixo do terço de cima."""
     x1, y1, x2, y2 = bbox
-    return (x1, y1, x2, y1 + int((y2 - y1) * 0.30))
+    return (x1, y1, x2, y1 + int((y2 - y1) * 0.70))
 
 
 def _torso_region(bbox: BBox) -> BBox:
@@ -31,6 +31,13 @@ def _torso_region(bbox: BBox) -> BBox:
     x1, y1, x2, y2 = bbox
     h = y2 - y1
     return (x1, y1 + int(h * 0.20), x2, y1 + int(h * 0.70))
+
+
+def _center_inside(region: BBox, box: BBox) -> bool:
+    """O centro da caixa do EPI cai dentro da região corporal."""
+    cx = (box[0] + box[2]) / 2
+    cy = (box[1] + box[3]) / 2
+    return region[0] <= cx <= region[2] and region[1] <= cy <= region[3]
 
 
 class PPEAssociator:
@@ -43,8 +50,9 @@ class PPEAssociator:
     IOU_THRESHOLD = 0.10
 
     _REGION: Dict[str, Callable[[BBox], BBox]] = {
-        "helmet": _head_region,
-        "vest":   _torso_region,
+        "helmet":  _face_region,
+        "glasses": _face_region,
+        "vest":    _torso_region,
     }
 
     def associate(
@@ -62,6 +70,9 @@ class PPEAssociator:
             for person in persons:
                 region = region_fn(person.bbox) if region_fn else person.bbox
                 score = _iou(region, ppe.bbox)
+                # Capacete e óculos são pequenos. Se o centro cai na pessoa, o EPI é dela.
+                if ppe.class_name in {"helmet", "glasses"} and _center_inside(person.bbox, ppe.bbox):
+                    score = max(score, 1.0)
                 if score > best_score:
                     best_score = score
                     best_id = person.track_id

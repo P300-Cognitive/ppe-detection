@@ -15,7 +15,15 @@ class VideoCapture:
         self._running = False
 
     def start(self):
-        self._cap = cv2.VideoCapture(self._source)
+        # No Linux o índice USB precisa do backend V4L2. O backend padrão
+        # tenta GStreamer primeiro e falha mesmo com /dev/videoN presente.
+        if isinstance(self._source, int):
+            self._cap = cv2.VideoCapture(self._source, cv2.CAP_V4L2)
+        else:
+            self._cap = cv2.VideoCapture()
+            self._cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 8000)
+            self._cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)
+            self._cap.open(str(self._source))
         if not self._cap.isOpened():
             self._running = False
             self._cap.release()

@@ -42,7 +42,7 @@ def _parse_args() -> argparse.Namespace:
 
     # Regras
     p.add_argument("--required-ppe", nargs="+",
-                   default=["helmet", "vest"],
+                   default=["helmet", "vest", "glasses"],
                    metavar="EPI",
                    help="EPIs obrigatórios (ex: helmet vest glasses)")
     p.add_argument("--confirm-frames", type=int, default=5,
@@ -84,6 +84,8 @@ def main():
 
     # ── Estado compartilhado ─────────────────────────────────────────────
     state = AppState()
+    from src.video.devices import label_for_source
+
     state.setup(
         camera_id=args.camera_id,
         required_ppe=args.required_ppe,
@@ -91,6 +93,8 @@ def main():
         pre_seconds=args.pre_seconds,
         post_seconds=args.post_seconds,
     )
+    state.camera_source = source
+    state.camera_label = label_for_source(source)
 
     # ── Pipeline de vídeo (thread separada) ──────────────────────────────
     pipeline = CameraPipeline(
@@ -102,6 +106,7 @@ def main():
         show_window=args.show_window,
         state=state,
     )
+    state.attach_pipeline(pipeline)
     t = threading.Thread(target=pipeline.run, daemon=True)
     t.start()
     print(f"[ppe] Câmera '{args.camera_id}' iniciada  →  fonte: {source!r}")

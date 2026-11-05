@@ -4,6 +4,23 @@ from __future__ import annotations
 from typing import Any, List, Optional
 
 
+def _incident_date(item) -> str:
+    raw = getattr(item, "date", None)
+    if raw is not None:
+        return str(raw)[:10]
+    ts = getattr(item, "timestamp", None)
+    if hasattr(ts, "strftime"):
+        return ts.strftime("%Y-%m-%d")
+    return "" if ts is None else str(ts)[:10]
+
+
+def _matches_ppe(item, ppe_type: str) -> bool:
+    if getattr(item, "ppe_type", None) == ppe_type:
+        return True
+    reason = str(getattr(item, "reason", "") or "")
+    return reason == ppe_type or reason == f"sem {ppe_type}"
+
+
 class IncidentHistory:
     """Armazena ocorrências e permite filtragem por data, câmera e tipo de EPI."""
 
@@ -21,11 +38,11 @@ class IncidentHistory:
     ) -> List[Any]:
         results = self._incidents
         if date is not None:
-            results = [i for i in results if str(i.date) == date]
+            results = [i for i in results if _incident_date(i) == date]
         if camera_id is not None:
             results = [i for i in results if i.camera_id == camera_id]
         if ppe_type is not None:
-            results = [i for i in results if i.ppe_type == ppe_type]
+            results = [i for i in results if _matches_ppe(i, ppe_type)]
         return results
 
     def all(self) -> List[Any]:

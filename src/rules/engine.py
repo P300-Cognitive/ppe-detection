@@ -38,6 +38,23 @@ class SafetyRulesEngine:
     def get_pending_alert(self, person_id: int) -> Optional[Alert]:
         return self._pending_alerts.get(person_id)
 
+    def forget_ppe(self, ppe_type: str):
+        """Descarta contagens e alertas de um EPI que deixou de ser obrigatório."""
+        self._violation_counts = defaultdict(
+            int,
+            {key: count for key, count in self._violation_counts.items() if key[1] != ppe_type},
+        )
+        for person_id, alert in list(self._pending_alerts.items()):
+            if alert.ppe_type == ppe_type:
+                self._pending_alerts.pop(person_id, None)
+
+    def clear_violation(self, person_id: int, ppe_type: str):
+        """Zera a ausência quando o EPI volta a ser detectado na pessoa."""
+        self._violation_counts.pop((person_id, ppe_type), None)
+        alert = self._pending_alerts.get(person_id)
+        if alert is not None and alert.ppe_type == ppe_type:
+            self._pending_alerts.pop(person_id, None)
+
     # ── Processamento de alertas ─────────────────────────────────────────
 
     def force_alert(self, person_id: int, ppe_type: str):
@@ -65,6 +82,9 @@ class SafetyRulesEngine:
         return list(self._recorded_events)
 
     # ── Regras por câmera ────────────────────────────────────────────────
+
+    def set_camera_id(self, camera_id: str):
+        self._camera_id = camera_id
 
     def set_required_ppe(self, camera_id: str, ppe_list: List[str]):
         self._required_ppe[camera_id] = list(ppe_list)

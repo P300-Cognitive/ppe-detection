@@ -21,6 +21,12 @@ class CameraManager:
         self._cameras[cam_id] = camera
         return camera
 
+    def find_by_url(self, rtsp_url: str) -> Optional[Camera]:
+        for camera in self._cameras.values():
+            if camera.rtsp_url == rtsp_url:
+                return camera
+        return None
+
     def get(self, camera_id: str) -> Optional[Camera]:
         return self._cameras.get(camera_id)
 
