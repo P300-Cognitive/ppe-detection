@@ -1,0 +1,155 @@
+{
+  "kind": "infer",
+  "host": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "python": "3.12.4",
+    "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "cpu_logical": 32,
+    "ram_gb": 31.8,
+    "gpu": "NVIDIA GeForce RTX 5080",
+    "gpu_vram_mb": 16303,
+    "driver": "617.14"
+  },
+  "args": {
+    "cmd": "infer",
+    "videos": null,
+    "camera_fps": 15,
+    "infer_fps": 5,
+    "ppe_hz": 2,
+    "models": null,
+    "batches": [
+      8,
+      32
+    ],
+    "seconds": 10,
+    "no_nms": true
+  },
+  "rows": [
+    {
+      "modelo": "yolov8s-pose_fp16_b32",
+      "batch": 8,
+      "img_s": 1822.1017766010937,
+      "ms_img": 0.5488167636087687,
+      "lat_p50_ms": 4.357650002930313,
+      "lat_p95_ms": 4.6944500063546,
+      "gpu_util_avg": 87.1,
+      "gpu_util_p95": 91.0,
+      "nvdec_util_avg": 0.0,
+      "vram_peak_mb": 5061,
+      "vram_delta_mb": 2928,
+      "cpu_avg": 9.5,
+      "cpu_p95": 14.5,
+      "ram_delta_gb": 0.48
+    },
+    {
+      "modelo": "yolov8s-pose_fp16_b32",
+      "batch": 32,
+      "img_s": 1954.1437266902778,
+      "ms_img": 0.5117330861295931,
+      "lat_p50_ms": 16.360699955839664,
+      "lat_p95_ms": 16.672450001351535,
+      "gpu_util_avg": 96.6,
+      "gpu_util_p95": 97.5,
+      "nvdec_util_avg": 0.0,
+      "vram_peak_mb": 5052,
+      "vram_delta_mb": 2919,
+      "cpu_avg": 7.7,
+      "cpu_p95": 12.1,
+      "ram_delta_gb": 0.47
+    },
+    {
+      "modelo": "yolov8s-pose_int8_b32",
+      "batch": 8,
+      "img_s": 1458.840060385428,
+      "ms_img": 0.6854761033473391,
+      "lat_p50_ms": 5.431599973235279,
+      "lat_p95_ms": 5.777774989837781,
+      "gpu_util_avg": 90.3,
+      "gpu_util_p95": 93.0,
+      "nvdec_util_avg": 0.0,
+      "vram_peak_mb": 5554,
+      "vram_delta_mb": 3421,
+      "cpu_avg": 9.7,
+      "cpu_p95": 18.3,
+      "ram_delta_gb": 0.52
+    },
+    {
+      "modelo": "yolov8s-pose_int8_b32",
+      "batch": 32,
+      "img_s": 1880.2381810850147,
+      "ms_img": 0.5318475127565687,
+      "lat_p50_ms": 17.001550004351884,
+      "lat_p95_ms": 17.327449982985854,
+      "gpu_util_avg": 97.0,
+      "gpu_util_p95": 97.0,
+      "nvdec_util_avg": 0.0,
+      "vram_peak_mb": 5558,
+      "vram_delta_mb": 3426,
+      "cpu_avg": 7.0,
+      "cpu_p95": 11.4,
+      "ram_delta_gb": 0.49
+    },
+    {
+      "modelo": "yolov8s_fp16_b32",
+      "batch": 8,
+      "img_s": 2054.1545080026617,
+      "ms_img": 0.486818297311209,
+      "lat_p50_ms": 3.8765500066801906,
+      "lat_p95_ms": 4.196389997377992,
+      "gpu_util_avg": 86.4,
+      "gpu_util_p95": 91.5,
+      "nvdec_util_avg": 0.0,
+      "vram_peak_mb": 5268,
+      "vram_delta_mb": 3136,
+      "cpu_avg": 8.6,
+      "cpu_p95": 12.2,
+      "ram_delta_gb": 0.4
+    },
+    {
+      "modelo": "yolov8s_fp16_b32",
+      "batch": 32,
+      "img_s": 2113.7557341216816,
+      "ms_img": 0.4730915610812169,
+      "lat_p50_ms": 15.115799964405596,
+      "lat_p95_ms": 15.451300016138703,
+      "gpu_util_avg": 96.8,
+      "gpu_util_p95": 97.0,
+      "nvdec_util_avg": 0.0,
+      "vram_peak_mb": 5268,
+      "vram_delta_mb": 3136,
+      "cpu_avg": 5.8,
+      "cpu_p95": 8.6,
+      "ram_delta_gb": 0.39
+    }
+  ],
+  "capacity": [
+    {
+      "precisao": "fp16",
+      "pessoas": 2,
+      "ms_gpu_por_camera": 4.451031674972833,
+      "cameras_70pct": 157,
+      "cameras_100pct": 224
+    },
+    {
+      "precisao": "fp16",
+      "pessoas": 5,
+      "ms_gpu_por_camera": 7.289581041460134,
+      "cameras_70pct": 96,
+      "cameras_100pct": 137
+    },
+    {
+      "precisao": "pose int8 + EPI fp16",
+      "pessoas": 2,
+      "ms_gpu_por_camera": 4.5516038081077115,
+      "cameras_70pct": 153,
+      "cameras_100pct": 219
+    },
+    {
+      "precisao": "pose int8 + EPI fp16",
+      "pessoas": 5,
+      "ms_gpu_por_camera": 7.390153174595012,
+      "cameras_70pct": 94,
+      "cameras_100pct": 135
+    }
+  ]
+}

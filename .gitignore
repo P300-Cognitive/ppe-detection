@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Prova de carga (benchmarks)
+benchmarks/.venv/
+benchmarks/data/
+benchmarks/models/

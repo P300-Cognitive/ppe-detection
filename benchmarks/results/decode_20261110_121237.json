@@ -1,0 +1,129 @@
+{
+  "kind": "decode",
+  "host": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "python": "3.12.4",
+    "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "cpu_logical": 32,
+    "ram_gb": 31.8,
+    "gpu": "NVIDIA GeForce RTX 5080",
+    "gpu_vram_mb": 16303,
+    "driver": "617.14"
+  },
+  "args": {
+    "cmd": "decode",
+    "videos": null,
+    "camera_fps": 15,
+    "infer_fps": 5,
+    "ppe_hz": 2,
+    "backend": [
+      "cpu",
+      "nvdec"
+    ],
+    "streams": [
+      25,
+      50,
+      100
+    ],
+    "procs": 0,
+    "seconds": 20
+  },
+  "rows": [
+    {
+      "backend": "cpu",
+      "streams": 25,
+      "processos": 25,
+      "fps_total": 2477.5,
+      "fps_necessario": 375,
+      "streams_sustentaveis": 165,
+      "gpu_util_avg": 3.1,
+      "gpu_util_p95": 4.0,
+      "nvdec_util_avg": 0.0,
+      "vram_peak_mb": 1913,
+      "vram_delta_mb": 0,
+      "cpu_avg": 90.9,
+      "cpu_p95": 96.6,
+      "ram_delta_gb": 0.98
+    },
+    {
+      "backend": "cpu",
+      "streams": 50,
+      "processos": 32,
+      "fps_total": 2665.75,
+      "fps_necessario": 750,
+      "streams_sustentaveis": 177,
+      "gpu_util_avg": 3.0,
+      "gpu_util_p95": 3.0,
+      "nvdec_util_avg": 0.0,
+      "vram_peak_mb": 1899,
+      "vram_delta_mb": 5,
+      "cpu_avg": 99.8,
+      "cpu_p95": 100.0,
+      "ram_delta_gb": 1.43
+    },
+    {
+      "backend": "cpu",
+      "streams": 100,
+      "processos": 32,
+      "fps_total": 2633.35,
+      "fps_necessario": 1500,
+      "streams_sustentaveis": 175,
+      "gpu_util_avg": 3.0,
+      "gpu_util_p95": 3.0,
+      "nvdec_util_avg": 0.0,
+      "vram_peak_mb": 1899,
+      "vram_delta_mb": 5,
+      "cpu_avg": 95.6,
+      "cpu_p95": 100.0,
+      "ram_delta_gb": 1.92
+    },
+    {
+      "backend": "nvdec",
+      "streams": 25,
+      "processos": 4,
+      "fps_total": 1978.1,
+      "fps_necessario": 375,
+      "streams_sustentaveis": 131,
+      "gpu_util_avg": 20.8,
+      "gpu_util_p95": 26.0,
+      "nvdec_util_avg": 38.6,
+      "vram_peak_mb": 3858,
+      "vram_delta_mb": 1964,
+      "cpu_avg": 84.3,
+      "cpu_p95": 100.0,
+      "ram_delta_gb": 3.01
+    },
+    {
+      "backend": "nvdec",
+      "streams": 50,
+      "processos": 4,
+      "fps_total": 2091.75,
+      "fps_necessario": 750,
+      "streams_sustentaveis": 139,
+      "gpu_util_avg": 21.0,
+      "gpu_util_p95": 26.0,
+      "nvdec_util_avg": 39.6,
+      "vram_peak_mb": 4928,
+      "vram_delta_mb": 3028,
+      "cpu_avg": 84.6,
+      "cpu_p95": 100.0,
+      "ram_delta_gb": 3.88
+    },
+    {
+      "backend": "nvdec",
+      "streams": 100,
+      "processos": 4,
+      "fps_total": 2057.5,
+      "fps_necessario": 1500,
+      "streams_sustentaveis": 137,
+      "gpu_util_avg": 20.6,
+      "gpu_util_p95": 26.0,
+      "nvdec_util_avg": 39.3,
+      "vram_peak_mb": 6964,
+      "vram_delta_mb": 5071,
+      "cpu_avg": 81.7,
+      "cpu_p95": 100.0,
+      "ram_delta_gb": 4.49
+    }
+  ]
+}

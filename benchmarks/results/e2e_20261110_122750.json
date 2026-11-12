@@ -1,0 +1,72 @@
+{
+  "kind": "e2e",
+  "host": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "python": "3.12.4",
+    "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "cpu_logical": 32,
+    "ram_gb": 31.8,
+    "gpu": "NVIDIA GeForce RTX 5080",
+    "gpu_vram_mb": 16303,
+    "driver": "617.14"
+  },
+  "args": {
+    "cmd": "e2e",
+    "videos": null,
+    "camera_fps": 15,
+    "infer_fps": 5,
+    "ppe_hz": 2,
+    "cams": [
+      100
+    ],
+    "persons": 2,
+    "precision": "fp16",
+    "backend": "nvdec",
+    "workers": 0,
+    "cams_per_worker": 6,
+    "max_batch": 32,
+    "max_wait_ms": 30,
+    "max_queue_s": 2,
+    "ring_seconds": 1.5,
+    "max_latency_ms": 1000,
+    "warmup": 15.0,
+    "seconds": 40.0,
+    "stop_on_fail": false
+  },
+  "rows": [
+    {
+      "cameras": 100,
+      "workers": 17,
+      "pessoas": 2,
+      "decode": "nvdec",
+      "decode_fps": 1525.299489269454,
+      "decode_fps_alvo": 1500,
+      "atraso_worker_max_s": 4.66,
+      "pose_inf_s": 476.44203147685334,
+      "pose_alvo_s": 500,
+      "pose_atingido_pct": 95.28840629537068,
+      "pose_idade_p50_ms": 1289.6409034729004,
+      "pose_idade_p95_ms": 1487.616205215454,
+      "pose_descarte_pct": 6.8022886204704385,
+      "pose_batch_medio": 29.685358255451714,
+      "ppe_inf_s": 355.19405935686495,
+      "ppe_alvo_s": 375,
+      "ppe_atingido_pct": 94.71841582849733,
+      "ppe_idade_p50_ms": 876.9223690032959,
+      "ppe_idade_p95_ms": 1617.8514957427979,
+      "ppe_descarte_pct": 6.765535796312094,
+      "ppe_batch_medio": 29.41614906832298,
+      "gpu_util_avg": 64.2,
+      "gpu_util_p95": 75.2,
+      "nvdec_util_avg": 34.4,
+      "vram_peak_mb": 15859,
+      "vram_delta_mb": 8,
+      "cpu_avg": 95.4,
+      "cpu_p95": 100.0,
+      "ram_delta_gb": 0.14,
+      "slo_ok": false,
+      "falhas": "pose p95 1488 ms; pose descarte 6.8%; ppe 95% da taxa; ppe p95 1618 ms; ppe descarte 6.8%; decode abaixo do tempo real (atraso 4.7s)"
+    }
+  ],
+  "max_cameras_ok": 0
+}
